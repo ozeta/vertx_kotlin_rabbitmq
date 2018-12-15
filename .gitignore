@@ -23,3 +23,11 @@ hs_err_pid*
 /rabbit_vertx_consumer/gradlew.bat
 /rabbit_vertx_consumer/out
 /rabbit_vertx_consumer/settings.gradle
+/rabbit_vertx/.gradle
+/rabbit_vertx/.idea
+/rabbit_vertx/build
+/rabbit_vertx/gradle
+/rabbit_vertx/gradlew
+/rabbit_vertx/gradlew.bat
+/rabbit_vertx/out
+/rabbit_vertx/settings.gradle
