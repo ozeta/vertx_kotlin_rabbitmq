@@ -45,6 +45,17 @@ def watchForChange = 'src/**/*'
 def doOnChange = './gradlew classes'
 
 dependencies {
+  compile group: 'joda-time', name: 'joda-time', version: '2.10.1'
+  compile group: 'org.jooq', name: 'jooq', version: '3.11.7'
+  compile group: 'org.jooq', name: 'jooq-meta', version: '3.11.7'
+  compile group: 'org.jooq', name: 'jooq-codegen', version: '3.11.7'
+
+
+  compile "io.vertx:vertx-mysql-postgresql-client:$vertxVersion"
+  compile 'io.vertx:vertx-sql-common:3.6.0'
+  compile group: "io.vertx', name: 'vertx-lang-kotlin', version:$vertxVersion"
+
+
   implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlinVersion"
 
   implementation "io.vertx:vertx-core:$vertxVersion"
