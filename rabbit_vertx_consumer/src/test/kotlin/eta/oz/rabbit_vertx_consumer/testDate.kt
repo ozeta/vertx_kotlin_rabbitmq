@@ -1,12 +1,25 @@
 package eta.oz.rabbit_vertx_consumer
 
-import io.vertx.ext.asyncsql.MySQLClient
+import com.fasterxml.jackson.datatype.joda.JodaModule
+import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
+import com.fasterxml.jackson.module.kotlin.readValue
+import org.joda.time.DateTime
 import org.joda.time.format.ISODateTimeFormat
-import java.sql.DriverManager
-import org.jooq.SQLDialect
-import org.jooq.impl.DSL
-import io.vertx.kotlin.core.json.*
+import java.util.*
 
+
+fun main(args: Array<String>) {
+  val payload = Payload("uuid", 2.2, 3.3, DateTime.now())
+  val event = Event(Header(Source.IOT, EventType.CREATED, UUID.randomUUID()), payload)
+  val toCharArray = event.toString().toCharArray()
+
+  val mapper = jacksonObjectMapper()
+  mapper.registerModule(JodaModule())
+  val str = mapper.writeValueAsString(event)
+  println(str)
+  val readValue = mapper.readValue<Event>(str)
+  println(readValue)
+}
 
 fun main1(args: Array<String>) {
 //  val string = "2018-12-16 01:26:21.557766"

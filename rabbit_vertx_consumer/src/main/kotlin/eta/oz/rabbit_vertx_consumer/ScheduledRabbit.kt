@@ -1,6 +1,7 @@
 package eta.oz.rabbit_vertx_consumer
 
 import io.vertx.core.AbstractVerticle
+import io.vertx.core.eventbus.EventBus
 import io.vertx.core.json.JsonObject
 import io.vertx.rabbitmq.QueueOptions
 import io.vertx.rabbitmq.RabbitMQClient
@@ -10,12 +11,11 @@ import org.joda.time.format.DateTimeFormatter
 import org.joda.time.format.ISODateTimeFormat
 
 
-class ScheduledRabbitConsumer : AbstractVerticle() {
+class RabbitConsumer : AbstractVerticle() {
   val parser2: DateTimeFormatter = ISODateTimeFormat.dateTimeNoMillis()
+  lateinit var eb: EventBus
 
   override fun start() {
-    val producerInterval = 1000L
-    val consumerInterval = 5000L
     val config = RabbitMQOptions()
     config.host = config().getString("host", "localhost")
     config.port = config().getInteger("port", 5672)
@@ -23,9 +23,8 @@ class ScheduledRabbitConsumer : AbstractVerticle() {
     config.password = config().getString("password", "mqtt")
     val client = RabbitMQClient.create(vertx, config)
 
-//    vertx.setPeriodic(interval) {
-//    }
-    client.start() {
+    client.start {
+      eb = vertx.eventBus()
       basicConsumer(client)
     }
 
@@ -37,13 +36,15 @@ class ScheduledRabbitConsumer : AbstractVerticle() {
     optionJson.put("autoAck", true)
 
     var options = QueueOptions(optionJson)
-    client.basicConsumer("hello", options) { rabbitMQConsumerAsyncResult ->
+    client.basicConsumer("iot.test", options) { rabbitMQConsumerAsyncResult ->
       if (rabbitMQConsumerAsyncResult.succeeded()) {
-        println("new messages!")
         var mqConsumer = rabbitMQConsumerAsyncResult.result()
         mqConsumer.handler { message ->
           var jsonMessage = message.body().toJsonObject()
-          parseJsonMessage(jsonMessage)
+          val payload = parseJsonMessage(jsonMessage)
+          val event = Event(Header(Source.IOT, EventType.CREATED, UUID.randomUUID()), payload)
+          eb.publish("iot", event)
+          println(payload)
         }
       } else {
         rabbitMQConsumerAsyncResult.cause().printStackTrace()
@@ -52,13 +53,14 @@ class ScheduledRabbitConsumer : AbstractVerticle() {
 
   }
 
-  private fun parseJsonMessage(jsonMessage: JsonObject) {
+
+  private fun parseJsonMessage(jsonMessage: JsonObject): Payload {
     val date = jsonMessage.getString("date")
+    val jodaDate = parser2.parseDateTime(date)
     val temp = jsonMessage.getDouble("temp (C)")
     val hum = jsonMessage.getDouble("hum (%)")
-    val jodaDate = parser2.parseDateTime(date)
-
-    println("date: $jodaDate; temp: $temp; hum: $hum")
+    val deviceUuid = jsonMessage.getString("device_uuid")
+    return Payload(deviceUuid?:"iot_clima", temp, hum, jodaDate)
   }
 
   override fun stop() {}
