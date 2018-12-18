@@ -1,12 +1,12 @@
-package eta.oz.rabbit_vertx_consumer
+package eta.oz.consumer.data
 
 import java.util.*
 
-enum class Source() {
+enum class Source {
   IOT
 }
 
-enum class EventType() {
+enum class EventType {
   RECEIVED,
   CREATED,
   FORWARDED

@@ -42,7 +42,7 @@ version = '1.0.0-SNAPSHOT'
 sourceCompatibility = '1.8'
 mainClassName = 'io.vertx.core.Launcher'
 
-def mainVerticleName = 'eta.oz.rabbit_vertx_consumer.MainVerticle'
+def mainVerticleName = 'eta.oz.rabbit.vertx.consumer.MainVerticle'
 def watchForChange = 'src/**/*'
 def doOnChange = './gradlew classes'
 

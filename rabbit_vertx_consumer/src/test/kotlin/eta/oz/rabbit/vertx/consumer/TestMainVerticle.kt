@@ -1,5 +1,6 @@
-package eta.oz.rabbit_vertx_consumer
+package eta.oz.rabbit.vertx.consumer
 
+import eta.oz.consumer.MainVerticle
 import io.vertx.core.Vertx
 import io.vertx.junit5.Timeout
 import io.vertx.junit5.VertxExtension

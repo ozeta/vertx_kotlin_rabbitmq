@@ -1,26 +1,34 @@
-package eta.oz.rabbit_vertx_consumer
+package eta.oz.consumer.verticle
 
+import com.fasterxml.jackson.datatype.joda.JodaModule
+import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
+import eta.oz.consumer.data.*
 import io.vertx.core.AbstractVerticle
 import io.vertx.core.eventbus.EventBus
 import io.vertx.core.json.JsonObject
 import io.vertx.rabbitmq.QueueOptions
 import io.vertx.rabbitmq.RabbitMQClient
-import java.util.*
 import io.vertx.rabbitmq.RabbitMQOptions
 import org.joda.time.format.DateTimeFormatter
 import org.joda.time.format.ISODateTimeFormat
+import java.util.*
+import kotlin.collections.HashMap
 
 
 class RabbitConsumer : AbstractVerticle() {
   val parser2: DateTimeFormatter = ISODateTimeFormat.dateTimeNoMillis()
+  var confMap = HashMap<String, Any>()
   lateinit var eb: EventBus
+  val mapper = jacksonObjectMapper().registerModule(JodaModule())
 
   override fun start() {
     val config = RabbitMQOptions()
-    config.host = config().getString("host", "localhost")
-    config.port = config().getInteger("port", 5672)
-    config.user = config().getString("user", "mqtt")
-    config.password = config().getString("password", "mqtt")
+    config.host = config().getString("rabbit.host")
+    config.port = config().getInteger("rabbit.port")
+    config.user = config().getString("user")
+    config.password = config().getString("password")
+    confMap["rabbit.queue"] = config().getString("rabbit.queue")
+    confMap["eventbus.name"] = config().getString("eventbus.name")
     val client = RabbitMQClient.create(vertx, config)
 
     client.start {
@@ -35,19 +43,21 @@ class RabbitConsumer : AbstractVerticle() {
     optionJson.put("keepMostRecent", true)
     optionJson.put("autoAck", true)
 
-    var options = QueueOptions(optionJson)
-    client.basicConsumer("iot.test", options) { rabbitMQConsumerAsyncResult ->
-      if (rabbitMQConsumerAsyncResult.succeeded()) {
-        var mqConsumer = rabbitMQConsumerAsyncResult.result()
+    val options = QueueOptions(optionJson)
+    client.basicConsumer(confMap["rabbit.queue"] as String, options) { asyncResult ->
+      if (asyncResult.succeeded()) {
+        val mqConsumer = asyncResult.result()
+
         mqConsumer.handler { message ->
-          var jsonMessage = message.body().toJsonObject()
+          val jsonMessage = message.body().toJsonObject()
           val payload = parseJsonMessage(jsonMessage)
           val event = Event(Header(Source.IOT, EventType.CREATED, UUID.randomUUID()), payload)
-          eb.publish("iot", event)
+          val eventStr = mapper.writeValueAsString(event)
+          eb.publish(confMap["eventbus.name"] as String, eventStr)
           println(payload)
         }
       } else {
-        rabbitMQConsumerAsyncResult.cause().printStackTrace()
+        asyncResult.cause().printStackTrace()
       }
     }
 
@@ -60,7 +70,7 @@ class RabbitConsumer : AbstractVerticle() {
     val temp = jsonMessage.getDouble("temp (C)")
     val hum = jsonMessage.getDouble("hum (%)")
     val deviceUuid = jsonMessage.getString("device_uuid")
-    return Payload(deviceUuid?:"iot_clima", temp, hum, jodaDate)
+    return Payload(deviceUuid ?: "iot_clima", temp, hum, jodaDate)
   }
 
   override fun stop() {}
