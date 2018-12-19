@@ -1,6 +1,7 @@
 import pika
 import sys
 import json
+import time
 from datetime import datetime, tzinfo, timedelta
 
 def get_time():
@@ -8,6 +9,8 @@ def get_time():
 
 def main(argv):
     print("argv: {}".format(argv))
+    time.sleep(2)
+    interval = float(argv[0])
     pin = 2
     connection = pika.BlockingConnection(pika.ConnectionParameters(host='192.168.1.42'))
     channel = connection.channel()
@@ -20,8 +23,8 @@ def main(argv):
         date = get_time()
         data["date"] = '{}'.format(date)
         print(json.dumps(data))
-
         channel.basic_publish(exchange='',routing_key='iot.test',body=json.dumps(data))
+        time.sleep(interval)
     connection.close()
     return
 

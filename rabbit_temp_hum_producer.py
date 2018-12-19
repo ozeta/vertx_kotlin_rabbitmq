@@ -13,7 +13,7 @@ def main(argv):
     sensor = dht.DHT11
     connection = pika.BlockingConnection(pika.ConnectionParameters(host='192.168.1.42'))
     channel = connection.channel()
-    channel.queue_declare(queue='hello')
+    channel.queue_declare(queue='iot')
     while(True):
         humidity, temperature = dht.read_retry(sensor, pin)
         data = dict()
@@ -23,7 +23,7 @@ def main(argv):
         data["date"] = '{}'.format(date)
         print(json.dumps(data))
 
-        channel.basic_publish(exchange='',routing_key='hello',body=json.dumps(data))
+        channel.basic_publish(exchange='',routing_key='iot',body=json.dumps(data))
     connection.close()
     return
 

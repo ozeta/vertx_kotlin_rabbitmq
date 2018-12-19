@@ -12,12 +12,16 @@ class MainVerticle : AbstractVerticle() {
   override fun start(startFuture: Future<Void>) {
     print(banner)
     val conf = JsonObject()
+    conf.put("eventbus.name", "io.iot")
+
     conf.put("rabbit.host", "192.168.1.42")
-    conf.put("mysql.host", "192.168.1.42")
     conf.put("rabbit.port", 5672)
+    conf.put("rabbit.queue", "iot")
+    conf.put("rabbit.username", "mqtt")
+    conf.put("rabbit.password", "mqtt")
+
+    conf.put("mysql.host", "192.168.1.42")
     conf.put("mysql.port", 3306)
-    conf.put("rabbit.queue", "iot.test")
-    conf.put("eventbus.name", "io.iot.test")
     conf.put("mysql.db", "iot")
     conf.put("mysql.table", "sessions")
     conf.put("mysql.username", "root")

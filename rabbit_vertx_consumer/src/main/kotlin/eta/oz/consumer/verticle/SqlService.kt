@@ -1,6 +1,6 @@
 package eta.oz.consumer.verticle
 
-import com.fasterxml.jackson.datatype.joda.JodaModule
+//import com.fasterxml.jackson.datatype.joda.JodaModule
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
 import eta.oz.consumer.data.Event
@@ -15,7 +15,7 @@ import io.vertx.kotlin.core.json.obj
 class SqlService : AbstractVerticle() {
   lateinit var eventBus: EventBus
   lateinit var mySQLClient: AsyncSQLClient
-  val mapper = jacksonObjectMapper().registerModule(JodaModule())
+  val mapper = jacksonObjectMapper()/*.registerModule(JodaModule())*/
 
   private fun getAllStream() {
     mySQLClient.queryStream("SELECT * FROM sessions") { stream ->
@@ -36,11 +36,11 @@ class SqlService : AbstractVerticle() {
           if (ar.succeeded()) {
             ar.result().results.forEach {
               val json = json {
-                obj(mapOf(
+                obj(
                   "id" to it.getLong(0),
                   "payload" to it.getString(1),
                   "device_uuid" to it.getString(2)
-                ))
+                )
               }
               println(json)
             }
@@ -60,8 +60,8 @@ class SqlService : AbstractVerticle() {
       if (res.succeeded()) {
 
         var result = res.result()
-        println("Updated no. of rows: ${result.updated}")
-        println("Generated keys: ${result.keys}")
+//        println("Updated no. of rows: ${result.updated}")
+//        println("Generated keys: ${result.keys}")
 
       } else {
         println(res.cause().message)
@@ -108,19 +108,14 @@ class SqlService : AbstractVerticle() {
       val readValue = mapper.readValue<Event>(message.body())
       val body = readValue.body
       val header = readValue.header
-      println("I have received a message: ${message.body()}")
-      val json = json {
-        obj("date" to body.date,
-          "hum (%)" to body.hum,
-          "temp (C)" to body.temp
-        )
-      }
+      val jsn = body.toJson().toString()
+//      println(jsn)
       vertx.executeBlocking<Any>({ future ->
-        insert(body.device_uuid, json.toString())
+        insert(body.device_uuid, jsn)
         var result = header.traceId.toString()
         future.complete(result)
       }, { res ->
-        println("message saved: ${res.result()}")
+        //        println("message stored to db: ${res.result()}")
 
       })
     }

@@ -1,6 +1,6 @@
 package eta.oz.consumer.verticle
 
-import com.fasterxml.jackson.datatype.joda.JodaModule
+//import com.fasterxml.jackson.datatype.joda.JodaModule
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import eta.oz.consumer.data.*
 import io.vertx.core.AbstractVerticle
@@ -9,24 +9,24 @@ import io.vertx.core.json.JsonObject
 import io.vertx.rabbitmq.QueueOptions
 import io.vertx.rabbitmq.RabbitMQClient
 import io.vertx.rabbitmq.RabbitMQOptions
-import org.joda.time.format.DateTimeFormatter
-import org.joda.time.format.ISODateTimeFormat
+//import org.joda.time.format.DateTimeFormatter
+//import org.joda.time.format.ISODateTimeFormat
 import java.util.*
 import kotlin.collections.HashMap
 
 
 class RabbitConsumer : AbstractVerticle() {
-  val parser2: DateTimeFormatter = ISODateTimeFormat.dateTimeNoMillis()
+//  val parser2: DateTimeFormatter = ISODateTimeFormat.dateTimeNoMillis()
   var confMap = HashMap<String, Any>()
   lateinit var eb: EventBus
-  val mapper = jacksonObjectMapper().registerModule(JodaModule())
+  val mapper = jacksonObjectMapper()/*.registerModule(JodaModule())*/
 
   override fun start() {
     val config = RabbitMQOptions()
     config.host = config().getString("rabbit.host")
     config.port = config().getInteger("rabbit.port")
-    config.user = config().getString("user")
-    config.password = config().getString("password")
+    config.user = config().getString("rabbit.username")
+    config.password = config().getString("rabbit.password")
     confMap["rabbit.queue"] = config().getString("rabbit.queue")
     confMap["eventbus.name"] = config().getString("eventbus.name")
     val client = RabbitMQClient.create(vertx, config)
@@ -54,7 +54,7 @@ class RabbitConsumer : AbstractVerticle() {
           val event = Event(Header(Source.IOT, EventType.CREATED, UUID.randomUUID()), payload)
           val eventStr = mapper.writeValueAsString(event)
           eb.publish(confMap["eventbus.name"] as String, eventStr)
-          println(payload)
+//          println(payload)
         }
       } else {
         asyncResult.cause().printStackTrace()
@@ -66,11 +66,10 @@ class RabbitConsumer : AbstractVerticle() {
 
   private fun parseJsonMessage(jsonMessage: JsonObject): Payload {
     val date = jsonMessage.getString("date")
-    val jodaDate = parser2.parseDateTime(date)
     val temp = jsonMessage.getDouble("temp (C)")
     val hum = jsonMessage.getDouble("hum (%)")
     val deviceUuid = jsonMessage.getString("device_uuid")
-    return Payload(deviceUuid ?: "iot_clima", temp, hum, jodaDate)
+    return Payload(deviceUuid ?: "iot_clima", temp, hum, date)
   }
 
   override fun stop() {}
