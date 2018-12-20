@@ -16,17 +16,27 @@ class MainVerticle : AbstractVerticle() {
 
     conf.put("rabbit.host", "192.168.1.42")
     conf.put("rabbit.port", 5672)
-    conf.put("rabbit.queue", "iot.test")
+    conf.put("rabbit.queue", "iot.poc")
     conf.put("rabbit.username", "mqtt")
     conf.put("rabbit.password", "mqtt")
 
+//pihole
     conf.put("mysql.host", "192.168.1.42")
     conf.put("mysql.port", 3306)
-    conf.put("mysql.db", "iot.test")
+    conf.put("mysql.db", "iot")
     conf.put("mysql.table", "sessions_test")
     conf.put("mysql.username", "root")
     conf.put("mysql.password", "root")
 
+
+/*
+    //localhost
+    conf.put("mysql.host", "localhost")
+    conf.put("mysql.port", 3306)
+    conf.put("mysql.db", "iot")
+    conf.put("mysql.table", "sessions_test")
+    conf.put("mysql.username", "root")
+*/
     val options = DeploymentOptions()
       .setConfig(conf)
       .setInstances(1)
@@ -39,6 +49,8 @@ class MainVerticle : AbstractVerticle() {
          println("Deployment failed!")
        }
      }
+//    vertx.deployVerticle(SqlService())
+
 
      vertx.deployVerticle(RabbitConsumer(), options) { res ->
        if (res.succeeded()) {
