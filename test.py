@@ -10,11 +10,11 @@ def get_time():
 def main(argv):
     print("argv: {}".format(argv))
     time.sleep(2)
-    interval = float(argv[0])
-    pin = 2
+    queue_name = argv[0]
+    interval = float(argv[1])
     connection = pika.BlockingConnection(pika.ConnectionParameters(host='192.168.1.42'))
     channel = connection.channel()
-    channel.queue_declare(queue='iot.test')
+    channel.queue_declare(queue=queue_name)
     while(True):
         humidity, temperature = (0.0,0.0)
         data = dict()
@@ -23,7 +23,7 @@ def main(argv):
         date = get_time()
         data["date"] = '{}'.format(date)
         print(json.dumps(data))
-        channel.basic_publish(exchange='',routing_key='iot.test',body=json.dumps(data))
+        channel.basic_publish(exchange='',routing_key=queue_name,body=json.dumps(data))
         time.sleep(interval)
     connection.close()
     return

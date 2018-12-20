@@ -16,14 +16,14 @@ class MainVerticle : AbstractVerticle() {
 
     conf.put("rabbit.host", "192.168.1.42")
     conf.put("rabbit.port", 5672)
-    conf.put("rabbit.queue", "iot")
+    conf.put("rabbit.queue", "iot.test")
     conf.put("rabbit.username", "mqtt")
     conf.put("rabbit.password", "mqtt")
 
     conf.put("mysql.host", "192.168.1.42")
     conf.put("mysql.port", 3306)
-    conf.put("mysql.db", "iot")
-    conf.put("mysql.table", "sessions")
+    conf.put("mysql.db", "iot.test")
+    conf.put("mysql.table", "sessions_test")
     conf.put("mysql.username", "root")
     conf.put("mysql.password", "root")
 
